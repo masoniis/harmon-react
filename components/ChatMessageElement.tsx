@@ -31,6 +31,7 @@ export default function ChatMessageElement({
   editChatMessage,
   users,
   onReply,
+  setShouldScrollToEnd,
 }: {
   icon: string;
   username: string;
@@ -46,6 +47,7 @@ export default function ChatMessageElement({
   editChatMessage: (content: string) => void;
   users: Record<string, User>;
   onReply: () => void;
+  setShouldScrollToEnd: (value: boolean) => void;
 }) {
   const [content, setContent] = useState(msg.data.content);
 
@@ -54,6 +56,7 @@ export default function ChatMessageElement({
   const [editedContent, setEditedContent] = useState("");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const subbed = mentions.subUserIds(msg.data.content, users);
@@ -70,6 +73,20 @@ export default function ChatMessageElement({
       );
     }
   }, [isEditing]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      const observer = new ResizeObserver(() => {
+        setShouldScrollToEnd(true);
+      })
+      observer.observe(container);
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [setShouldScrollToEnd]);
 
   function editMessage() {
     if (editedContent !== content) {
@@ -127,6 +144,7 @@ export default function ChatMessageElement({
         isMentioned() && (isHovering ? "bg-mentioned-600" : "bg-mentioned"),
         showUsername && "mt-3",
       )}
+      ref={containerRef}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >

@@ -328,9 +328,9 @@ export default function Home() {
               top:
                 div.scrollTop -
                 2 *
-                  parseFloat(
-                    getComputedStyle(div, null).getPropertyValue("font-size"),
-                  ),
+                parseFloat(
+                  getComputedStyle(div, null).getPropertyValue("font-size"),
+                ),
             });
           }
         } else if (e.key === "j") {
@@ -341,9 +341,9 @@ export default function Home() {
               top:
                 div.scrollTop +
                 2 *
-                  parseFloat(
-                    getComputedStyle(div, null).getPropertyValue("font-size"),
-                  ),
+                parseFloat(
+                  getComputedStyle(div, null).getPropertyValue("font-size"),
+                ),
             });
           }
         } else if (e.key === "G") {
@@ -439,9 +439,11 @@ export default function Home() {
     });
   }, [chatMessagesHeight, chatMessagesScrollPos]);
 
+
   useEffect(() => {
-    if (shouldScrollToEnd) {
+    if (shouldScrollToEnd && !shouldKeepScrollPos) {
       chatMessagesDivEnd.current?.scrollIntoView();
+      console.log("Scrolled to end")
       setShouldScrollToEnd(false);
     }
   }, [shouldScrollToEnd]);
@@ -473,7 +475,7 @@ export default function Home() {
         let msg: any;
         try {
           msg = JSON.parse(msgText);
-        } catch (e) {}
+        } catch (e) { }
 
         // Uncomment for debugging
         // console.log(msg);
@@ -483,6 +485,11 @@ export default function Home() {
         const { action, userId, data } = msg;
         if (action === Action.NewChatMessage) {
           // Append message to last message chunk
+          if (userId === myUserId || isInViewport(chatMessagesDivEnd)) {
+            setShouldKeepScrollPos(false);
+          } else {
+            setShouldKeepScrollPos(true);
+          }
           setChatMessageChunks((prev) => {
             const last = prev.at(-1);
             if (last) {
@@ -498,9 +505,6 @@ export default function Home() {
             return [{ messages: [msg] }];
           });
           playChime();
-          if (userId === myUserId || isInViewport(chatMessagesDivEnd)) {
-            setShouldScrollToEnd(true);
-          }
         } else if (action === Action.ChangeUsername) {
           if (userId === myUserId) {
             setMyUser((prev) =>
@@ -515,9 +519,9 @@ export default function Home() {
           setUsers((prev) => ({ ...prev, ...{ [data.userId]: data.user } }));
         } else if (action === Action.GetChatMessages) {
           if (chatMessageChunks.length === 0) {
-            setShouldScrollToEnd(true);
+            // setShouldScrollToEnd(true);
           } else {
-            setShouldKeepScrollPos(true);
+            // setShouldKeepScrollPos(true);
           }
           const normalMessages = [];
           for (const chatMessage of data.messages) {
@@ -539,14 +543,14 @@ export default function Home() {
                 if (
                   chunk.messages[0] &&
                   chunk.messages[0].data.timestamp >
-                    editedMessage.data.editForTimestamp
+                  editedMessage.data.editForTimestamp
                 ) {
                   continue;
                 }
                 if (
                   chunk.messages.at(-1) &&
                   chunk.messages.at(-1)!.data.timestamp <
-                    editedMessage.data.editForTimestamp
+                  editedMessage.data.editForTimestamp
                 ) {
                   continue;
                 }
@@ -861,7 +865,7 @@ export default function Home() {
           {myUser && peer && (
             <div
               className="bg-content1 !bg-cover bg-off-center"
-              // style={{ background: getBannerBackground(myUser.bannerUrl) }}
+            // style={{ background: getBannerBackground(myUser.bannerUrl) }}
             >
               <div className="flex gap-2 py-1 justify-center">
                 <Tooltip disableAnimation closeDelay={0} content="Join Call">
@@ -878,8 +882,8 @@ export default function Home() {
                     className={clsx(
                       "text-foreground",
                       !isInCall &&
-                        !(ringtone?.paused ?? true) &&
-                        "bg-green-500 animate-pulse",
+                      !(ringtone?.paused ?? true) &&
+                      "bg-green-500 animate-pulse",
                     )}
                     onPress={() => changeCallStatus(true)}
                   >
@@ -908,8 +912,8 @@ export default function Home() {
                     className={clsx(
                       "text-foreground",
                       !isInCall &&
-                        !(ringtone?.paused ?? true) &&
-                        "animate-pulse",
+                      !(ringtone?.paused ?? true) &&
+                      "animate-pulse",
                     )}
                     onPress={() => changeCallStatus(false)}
                   >
@@ -964,7 +968,7 @@ export default function Home() {
             />
           )}
         </div>
-        <main className="bg-content3 flex flex-col min-w-0 w-full">
+        <main id="chatarea" className="bg-content3 flex flex-col min-w-0 w-full">
           <ScrollShadow
             hideScrollBar
             ref={chatMessagesDiv}
@@ -1022,6 +1026,7 @@ export default function Home() {
                         editChatMessage(chunk, msg, content)
                       }
                       onReply={() => setReplyingTo(msg)}
+                      setShouldScrollToEnd={setShouldScrollToEnd}
                     />
                   )),
                 ),
