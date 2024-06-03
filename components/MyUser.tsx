@@ -129,12 +129,12 @@ export default function MyUser({
               onBlur={editStatus}
             ></Input>
           ) : (
-            <p
+            <div
               className="hover:backdrop-blur-md hover:backdrop-brightness-50 hover:cursor-text text-ellipsis overflow-hidden flex-grow rounded"
               onClick={() => setIsEditingStatus(true)}
             >
               <Status>{myUser.status}</Status>
-            </p>
+            </div>
           )}
         </div>
       </div>

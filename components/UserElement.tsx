@@ -82,11 +82,11 @@ export default function UserElement({
             <PresenceIcon presence={user.presence} ping={isCalling} />
             <Username color={user.usernameColor}>{user.username}</Username>
           </div>
-          <p className="flex-grow ml-5">
+          <div className="flex-grow ml-5">
             <Status>
               {user.presence !== Presence.Offline ? user.status : "offline"}
             </Status>
-          </p>
+          </div>
         </div>
       </div>
     </div>
